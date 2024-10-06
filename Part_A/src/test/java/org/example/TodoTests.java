@@ -2,6 +2,9 @@ package org.example;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -11,50 +14,142 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 class TodoTests {
 
+    private static final String TODO_URL = "http://localhost:4567/todos";
+    private static final String CONTENT_TYPE_JSON = "application/json; utf-8";
+    private static final String ACCEPT_JSON = "application/json";
+
     @Test
-    void testGetTodo() {
-        String url = "http://localhost:4567/todos";
-        try {
-            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-
-            int responseCode = connection.getResponseCode();
-            assertEquals(200, responseCode);
-
-            connection.disconnect();
-        } catch (Exception e) {
-            fail("Exception occurred: " + e.getMessage());
-        }
+    void testGETTodo() {
+        executeRequest(TODO_URL, "GET", null, 200);
     }
 
     @Test
-    void testCreateTodo() {
-        String url = "http://localhost:4567/todos";
+    void testHEADTodo() {
+        executeRequest(TODO_URL, "HEAD", null, 200);
+    }
+
+    @Test
+    void testPOSTTodo() {
         String jsonInputString = """
                 {
                   "title": "Complete 429 Project",
                   "doneStatus": false,
                   "description": "Complete exploratory testing Part A"
                 }""";
+        executeRequest(TODO_URL, "POST", jsonInputString, 201);
+    }
+
+    @Test
+    void testGETTodoById() {
+        try {
+            String firstTodoId = getFirstTodoId(TODO_URL);
+            String todoUrl = TODO_URL + "/" + firstTodoId;
+            executeRequest(todoUrl, "GET", null, 200);
+        } catch (IOException e) {
+            fail("Exception occurred: " + e.getMessage());
+        }
+    }
+
+    @Test
+    void testHEADTodoById() {
+        try {
+            String firstTodoId = getFirstTodoId(TODO_URL);
+            String todoUrl = TODO_URL + "/" + firstTodoId;
+            executeRequest(todoUrl, "HEAD", null, 200);
+        } catch (IOException e) {
+            fail("Exception occurred: " + e.getMessage());
+        }
+    }
+
+    @Test
+    void testPOSTTodoByID() {
+        String jsonInputString = """
+                {
+                  "title": "This title was Updated by POST",
+                  "doneStatus": false,
+                  "description": "This description was updated with a POST request"
+                }""";
+        try {
+            String firstTodoId = getFirstTodoId(TODO_URL);
+            String url = TODO_URL + "/" + firstTodoId;
+            executeRequest(url, "POST", jsonInputString, 200);
+        } catch (IOException e) {
+            fail("Exception occurred: " + e.getMessage());
+        }
+    }
+
+    @Test
+    void testPUTTodoByID() {
+        String jsonInputString = """
+                {
+                  "title": "This title was Updated by PUT",
+                  "doneStatus": false,
+                  "description": "This description was updated with a PUT request"
+                }""";
+        try {
+            String firstTodoId = getFirstTodoId(TODO_URL);
+            String url = TODO_URL + "/" + firstTodoId;
+            executeRequest(url, "PUT", jsonInputString, 200);
+        } catch (IOException e) {
+            fail("Exception occurred: " + e.getMessage());
+        }
+    }
+
+    @Test
+    void testDELETETodoByID() {
+        try {
+            String firstTodoId = getFirstTodoId(TODO_URL);
+            String url = TODO_URL + "/" + firstTodoId;
+            executeRequest(url, "DELETE", null, 200);
+        } catch (IOException e) {
+            fail("Exception occurred: " + e.getMessage());
+        }
+    }
+
+    // Helper methods
+
+    private void executeRequest(String url, String method, String jsonInputString, int expectedResponseCode) {
         try {
             HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json; utf-8");
-            connection.setRequestProperty("Accept", "application/json");
-            connection.setDoOutput(true);
-
-            try (OutputStream os = connection.getOutputStream()) {
-                byte[] input = jsonInputString.getBytes("utf-8");
-                os.write(input, 0, input.length);
+            connection.setRequestMethod(method);
+            connection.setRequestProperty("Accept", ACCEPT_JSON);
+            if (jsonInputString != null) {
+                connection.setRequestProperty("Content-Type", CONTENT_TYPE_JSON);
+                connection.setDoOutput(true);
+                try (OutputStream os = connection.getOutputStream()) {
+                    byte[] input = jsonInputString.getBytes("utf-8");
+                    os.write(input, 0, input.length);
+                }
             }
-
+            connection.connect();
             int responseCode = connection.getResponseCode();
-            assertEquals(201, responseCode);
-
+            assertEquals(expectedResponseCode, responseCode);
             connection.disconnect();
+        } catch (IOException e) {
+            fail("IOException occurred: " + e.getMessage());
         } catch (Exception e) {
             fail("Exception occurred: " + e.getMessage());
         }
+    }
+
+    private static String getFirstTodoId(String baseUrl) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) new URL(baseUrl).openConnection();
+        connection.setRequestMethod("GET");
+        connection.connect();
+
+        int responseCode = connection.getResponseCode();
+        assertEquals(200, responseCode);
+
+        StringBuilder content = new StringBuilder();
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+            String inputLine;
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+            }
+        }
+        connection.disconnect();
+
+        String response = content.toString();
+        return response.split("\"id\":")[1].split(",")[0].replace("\"", "").trim();
     }
 }
