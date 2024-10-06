@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.example.TodoTests" tests="2" skipped="0" failures="0" errors="0" timestamp="2024-10-06T17:20:17" hostname="Theos-MacBook-Pro.local" time="0.02">
+<testsuite name="org.example.TodoTests" tests="2" skipped="0" failures="0" errors="0" timestamp="2024-10-06T17:31:27" hostname="Zachs-MacBook-Air.local" time="0.031">
   <properties/>
-  <testcase name="testGetTodo()" classname="org.example.TodoTests" time="0.016"/>
-  <testcase name="testCreateTodo()" classname="org.example.TodoTests" time="0.003"/>
+  <testcase name="testGetTodo()" classname="org.example.TodoTests" time="0.026"/>
+  <testcase name="testCreateTodo()" classname="org.example.TodoTests" time="0.004"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
