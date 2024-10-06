@@ -1,5 +1,6 @@
 package org.example;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
@@ -17,6 +18,20 @@ class ProjectsTests {
     private static final String PROJECTS_URL = "http://localhost:4567/projects";
     private static final String CONTENT_TYPE_JSON = "application/json; utf-8";
     private static final String ACCEPT_JSON = "application/json";
+
+    @BeforeAll
+    static void setUp() {
+        for (int i = 1; i <= 5; i++) {
+            String jsonInputString = String.format("""
+                    {
+                      "title": "Project %d",
+                      "completed": false,
+                      "active": true,
+                      "description": "Description of project %d"
+                    }""", i, i);
+            executeRequest(PROJECTS_URL, "POST", jsonInputString, 201);
+        }
+    }
 
     @Test
     void testGETProjects() {
@@ -114,9 +129,71 @@ class ProjectsTests {
         }
     }
 
+    @Test
+    void testPOSTProjectsWithMalformedJSON() {
+        String malformedJsonInputString = """
+                {
+                  "title": "Malformed JSON Project",
+                  "completed": false,
+                  "active": true,
+                  "description": "Description of the new project
+                }"""; // Missing closing quote
+        executeRequest(PROJECTS_URL, "POST", malformedJsonInputString, 400);
+    }
+
+    @Test
+    void testPOSTProjectsWithMalformedXML() {
+        String malformedXmlInputString = """
+                <project>
+                  <title>Malformed XML Project/title>
+                  <completed>false</completed>
+                  <active>true</active>
+                  <description>Description of the new project</description
+                </project>"""; // Missing closing tag
+        executeRequestWithXML(PROJECTS_URL, "POST", malformedXmlInputString, 400);
+    }
+
+    @Test
+    void testDELETEProjectAlreadyDeleted() {
+        try {
+            String firstProjectId = getFirstProjectId(PROJECTS_URL);
+            String url = PROJECTS_URL + "/" + firstProjectId;
+            executeRequest(url, "DELETE", null, 200);
+            // Attempt to delete again
+            executeRequest(url, "DELETE", null, 404);
+        } catch (IOException e) {
+            fail("Exception occurred: " + e.getMessage());
+        }
+    }
+
+    // Helper method for XML requests
+    private void executeRequestWithXML(String url, String method, String xmlInputString, int expectedResponseCode) {
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setRequestMethod(method);
+            connection.setRequestProperty("Accept", "application/xml");
+            if (xmlInputString != null) {
+                connection.setRequestProperty("Content-Type", "application/xml; utf-8");
+                connection.setDoOutput(true);
+                try (OutputStream os = connection.getOutputStream()) {
+                    byte[] input = xmlInputString.getBytes("utf-8");
+                    os.write(input, 0, input.length);
+                }
+            }
+            connection.connect();
+            int responseCode = connection.getResponseCode();
+            assertEquals(expectedResponseCode, responseCode);
+            connection.disconnect();
+        } catch (IOException e) {
+            fail("IOException occurred: " + e.getMessage());
+        } catch (Exception e) {
+            fail("Exception occurred: " + e.getMessage());
+        }
+    }
+
 
     // Helper methods
-    private void executeRequest(String url, String method, String jsonInputString, int expectedResponseCode) {
+    private static void executeRequest(String url, String method, String jsonInputString, int expectedResponseCode) {
         try {
             HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
             connection.setRequestMethod(method);

@@ -85,6 +85,7 @@ class TodoTests {
 
     @Test
     void testPUTTodoByID() {
+        testPOSTTodo();
         String jsonInputString = """
                 {
                   "title": "This title was Updated by PUT",
@@ -107,6 +108,66 @@ class TodoTests {
             String url = TODO_URL + "/" + firstTodoId;
             executeRequest(url, "DELETE", null, 200);
         } catch (IOException e) {
+            fail("Exception occurred: " + e.getMessage());
+        }
+    }
+
+    @Test
+    void testPOSTTodoWithMalformedJSON() {
+        String malformedJsonInputString = """
+                {
+                  "title": "Malformed JSON Todo",
+                  "doneStatus": false,
+                  "description": "Description of the new todo
+                }"""; // Missing closing quote
+        executeRequest(TODO_URL, "POST", malformedJsonInputString, 400);
+    }
+
+    @Test
+    void testPOSTTodoWithMalformedXML() {
+        String malformedXmlInputString = """
+                <todo>
+                  <title>Malformed XML Todo</title>
+                  <doneStatus>false</doneStatus>
+                  <description>Description of the new todo</description
+                </todo>"""; // Missing closing tag
+        executeRequestWithXML(TODO_URL, "POST", malformedXmlInputString, 400);
+    }
+
+    @Test
+    void testDELETETodoAlreadyDeleted() {
+        try {
+            String firstTodoId = getFirstTodoId(TODO_URL);
+            String url = TODO_URL + "/" + firstTodoId;
+            executeRequest(url, "DELETE", null, 200);
+            // Attempt to delete again
+            executeRequest(url, "DELETE", null, 404);
+        } catch (IOException e) {
+            fail("Exception occurred: " + e.getMessage());
+        }
+    }
+
+    // Helper method for XML requests
+    private void executeRequestWithXML(String url, String method, String xmlInputString, int expectedResponseCode) {
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setRequestMethod(method);
+            connection.setRequestProperty("Accept", "application/xml");
+            if (xmlInputString != null) {
+                connection.setRequestProperty("Content-Type", "application/xml; utf-8");
+                connection.setDoOutput(true);
+                try (OutputStream os = connection.getOutputStream()) {
+                    byte[] input = xmlInputString.getBytes("utf-8");
+                    os.write(input, 0, input.length);
+                }
+            }
+            connection.connect();
+            int responseCode = connection.getResponseCode();
+            assertEquals(expectedResponseCode, responseCode);
+            connection.disconnect();
+        } catch (IOException e) {
+            fail("IOException occurred: " + e.getMessage());
+        } catch (Exception e) {
             fail("Exception occurred: " + e.getMessage());
         }
     }
