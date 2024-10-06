@@ -40,6 +40,11 @@ class TodoTests {
     }
 
     @Test
+    void testOPTIONSTodo() {
+        executeRequest(TODO_URL, "OPTIONS", null, 200);
+    }
+
+    @Test
     void testGETTodoById() {
         try {
             String firstTodoId = getFirstTodoId(TODO_URL);

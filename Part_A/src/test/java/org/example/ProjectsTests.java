@@ -41,6 +41,11 @@ class ProjectsTests {
     }
 
     @Test
+    void testOPTIONSProjects() {
+        executeRequest(PROJECTS_URL, "OPTIONS", null, 200);
+    }
+
+    @Test
     void testGETProjectById() {
         try {
             String firstProjectId = getFirstProjectId(PROJECTS_URL);
