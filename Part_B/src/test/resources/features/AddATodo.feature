@@ -8,13 +8,13 @@ Feature: Add a new todo
     # Normal Flow
     Scenario: Adding a new todo successfully
         When the user adds a todo with the following details:
-            | title           | doneStatus | description           |
-            | submit report   | false      | project documents     |
-            | organize files  | false      | alphabetical order    |
+            | title          | doneStatus | description           |
+            | submit report  | false      | project documents     |
+            | organize files | false      | alphabetical order    |
         Then the following todos should be present in the system:
-            | title           | doneStatus | description           |
-            | submit report   | false      | project documents     |
-            | organize files  | false      | alphabetical order    |
+            | title          | doneStatus | description           |
+            | submit report  | false      | project documents     |
+            | organize files | false      | alphabetical order    |
 
     # Alternate Flow
     Scenario: Adding a new todo without a description
@@ -29,9 +29,10 @@ Feature: Add a new todo
             | wash dishes   | false      |             |
             | tidy bed      | false      |             |
 
-    # Error Flow
+    # # Error Flow
     Scenario: Adding a new todo with missing title
-        When the user attempts to add a todo with the following details:
+        # When the user attempts to add a todo with the following details:
+        When the user adds a todo with the following details:
             | title | doneStatus | description           |
             |       | false      | missing title example |
         Then an error message "Title is required" should be returned
