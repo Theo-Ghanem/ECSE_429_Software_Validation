@@ -1,14 +1,14 @@
-@MarkTaskAsDone
-Feature:
+@MarkTodoAsDone
+Feature: Mark Todo As Done
     As a user, I want to be able to mark a task as complete, to record my progress
 
 Background:
     Given the API server is running
     And the following todos are registered in the system:
-        | title      | doneStatus | description  |
-        | example1   | false      | test         |
-        | example2   | true       | test         |
-        | x          | true       | test         |
+        | title    | doneStatus | description |
+        | example1 | false      | test        |
+        | example2 | true       | test        |
+        | x        | true       | test        |
 
 # Normal Flow
 Scenario Outline: Mark an incomplete task as completed
@@ -25,9 +25,9 @@ Scenario Outline: Mark an incomplete task as completed
 Scenario Outline: Attempting to mark an already completed task as done
     Given a todo with the title <selectedTitle> exists in the system
     And the todo titled <selectedTitle> is already marked as done
-    When the user tries to mark the task titled <selectedTitle> as done
+    When the user attempts to mark the task titled <selectedTitle> as done again
     Then no changes will be made to the todo in the system
-    And the todo will be returned to the user as is
+    And the todo will be returned to the user unchanged
     Examples:
         | selectedTitle |
         | example2      |
@@ -36,11 +36,10 @@ Scenario Outline: Attempting to mark an already completed task as done
 # Error Flow
 Scenario Outline: Attempting to mark a non-existent task as completed
     Given no todo with the title <selectedTitle> exists in the system
-    When the user tries to mark the task titled <selectedTitle> as done
+    When the user tries to mark the non-existent task titled <selectedTitle> as done
     Then no todos in the system will be modified
     And the user will receive an error message indicating that the specified todo does not exist
     Examples:
         | selectedTitle |
         | fake title    |
         | null          |
-
