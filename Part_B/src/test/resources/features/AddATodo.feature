@@ -7,32 +7,31 @@ Feature: Add a new todo
 
     # Normal Flow
     Scenario: Adding a new todo successfully
-        When the user adds a todo with the following details:
+        When the user adds the following todos:
             | title          | doneStatus | description           |
             | submit report  | false      | project documents     |
             | organize files | false      | alphabetical order    |
-        Then the following todos should be present in the system:
+        Then the system should contain the following todos:
             | title          | doneStatus | description           |
             | submit report  | false      | project documents     |
             | organize files | false      | alphabetical order    |
 
     # Alternate Flow
     Scenario: Adding a new todo without a description
-        When the user adds a todo with the following details:
+        When the user adds the following todos without descriptions:
             | title         | doneStatus | description |
             | sweep floor   | false      |             |
             | wash dishes   | false      |             |
             | tidy bed      | false      |             |
-        Then the following todos should be present in the system:
+        Then the system should contain the following todos without descriptions:
             | title         | doneStatus | description |
             | sweep floor   | false      |             |
             | wash dishes   | false      |             |
             | tidy bed      | false      |             |
 
-    # # Error Flow
+    # Error Flow
     Scenario: Adding a new todo with missing title
-        # When the user attempts to add a todo with the following details:
-        When the user adds a todo with the following details:
+        When the user attempts to add the following todos with missing titles:
             | title | doneStatus | description           |
             |       | false      | missing title example |
         Then an error message "Failed Validation: title : can not be empty" should be returned
