@@ -5,15 +5,14 @@ import java.util.Map;
 
 import static org.junit.Assert.assertTrue;
 
-import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import static io.restassured.RestAssured.given;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
-import stepdefinitions.BaseStepDefinitions;
+import stepdefinitions.HelperStepDefinition;
 
-public class AddATodo {
+public class AddATodo extends HelperStepDefinition {
 
     private Response response;
     private String baseUrl = "http://localhost:4567/todos";
