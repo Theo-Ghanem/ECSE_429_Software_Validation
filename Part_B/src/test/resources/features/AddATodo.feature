@@ -7,7 +7,7 @@ Feature: Add a new todo
 
     # Normal Flow
     Scenario: Adding a new todo successfully
-        When the user adds a todo with the following details:
+        When the user create a todo with a title, a doneStatus and a description:
             | title           | doneStatus | description           |
             | submit report   | false      | project documents     |
             | organize files  | false      | alphabetical order    |
@@ -23,7 +23,7 @@ Feature: Add a new todo
             | sweep floor   | false      |             |
             | wash dishes   | false      |             |
             | tidy bed      | false      |             |
-        Then the following todos should be present in the system:
+        Then the following todos should still be present in the system:
             | title         | doneStatus | description |
             | sweep floor   | false      |             |
             | wash dishes   | false      |             |

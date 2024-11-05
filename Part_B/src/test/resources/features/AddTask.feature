@@ -1,4 +1,4 @@
-@AddATodo
+@AddATask
 Feature: Create a new instance of todo
     As a user, I want to be able to add a task to a project, so I can organize a project by tasks
 
