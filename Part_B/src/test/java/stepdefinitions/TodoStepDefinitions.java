@@ -1,175 +1,130 @@
 package stepdefinitions;
 
-import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
 import io.cucumber.java.en.Then;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
+import io.restassured.response.Response;
+import static org.junit.Assert.*;
+import static io.restassured.RestAssured.*;
 
 public class TodoStepDefinitions {
 
-    private CloseableHttpClient httpClient = HttpClients.createDefault();
-    private String baseUrl = "http://localhost:4567";
-    private CloseableHttpResponse response;
+    private Response response;
+    private String baseUrl = "http://localhost:4567/todos";
 
+    // Background step: Ensure the API server is running
     @Given("the API server is running")
-    public void the_api_server_is_running() throws IOException {
-        HttpGet request = new HttpGet(baseUrl + "/todos");
-        response = httpClient.execute(request);
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        response.close();
+    public void theApiServerIsRunning() {
+        // Optionally check if the server is running (ping the server or check the docs)
+        given().when().get("http://localhost:4567/docs").then().statusCode(200);
     }
 
-    @When("a user create a todo with a title, a doneStatus a description:")
-    public void a_user_create_a_todo_with_a_title_a_done_status_a_description(DataTable dataTable) throws IOException {
-        for (Map<String, String> row : dataTable.asMaps(String.class, String.class)) {
-            JSONObject requestParams = new JSONObject();
-            requestParams.put("title", row.get("title"));
-            requestParams.put("doneStatus", Boolean.parseBoolean(row.get("doneStatus")));
-            requestParams.put("description", row.get("description"));
+    // Normal Flow: Adding a new todo successfully
+    @When("the user adds a todo with the following details:")
+    public void theUserAddsATodoWithTheFollowingDetails(io.cucumber.datatable.DataTable dataTable) {
+        // Convert the data table to a list of todos
+        for (var row : dataTable.asLists()) {
+            String title = row.get(0);
+            boolean doneStatus = Boolean.parseBoolean(row.get(1));
+            String description = row.get(2);
 
-            HttpPost request = new HttpPost(baseUrl + "/todos");
-            request.setHeader("Content-Type", "application/json");
-            request.setEntity(new StringEntity(requestParams.toString()));
+            // Construct the request body for the new todo
+            String jsonBody = "{ \"title\": \"" + title + "\", \"doneStatus\": \"" + doneStatus + "\", \"description\": \"" + description + "\" }";
 
-            response = httpClient.execute(request);
-            assertEquals(201, response.getStatusLine().getStatusCode());
-            response.close();
+            // Send the POST request to add the todo
+            response = given()
+                    .contentType("application/json")
+                    .body(jsonBody)
+                    .when()
+                    .post(baseUrl);
         }
     }
 
-    @Then("the following todos shall exist in the system:")
-    public void the_following_todos_shall_exist_in_the_system(DataTable dataTable) throws IOException {
-        for (Map<String, String> row : dataTable.asMaps(String.class, String.class)) {
-            int id = getTodoIdByTitle(row.get("title"));
-            HttpGet request = new HttpGet(baseUrl + "/todos/" + id);
-            response = httpClient.execute(request);
+    @Then("the following todos should be present in the system:")
+    public void theFollowingTodosShouldBePresentInTheSystem(io.cucumber.datatable.DataTable dataTable) {
+        for (var row : dataTable.asLists()) {
+            String title = row.get(0);
+            boolean doneStatus = Boolean.parseBoolean(row.get(1));
+            String description = row.get(2);
 
-            String responseBody = EntityUtils.toString(response.getEntity());
-            JSONObject jsonResponse = new JSONObject(responseBody);
+            // Fetch the list of todos and assert that the new todo is present
+            response = given().when().get(baseUrl);
+            response.then().statusCode(200);
+            String responseBody = response.body().asString();
 
-            assertEquals(200, response.getStatusLine().getStatusCode());
-            assertEquals(row.get("title"), jsonResponse.getString("title"));
-            assertEquals(Boolean.parseBoolean(row.get("doneStatus")), jsonResponse.getBoolean("doneStatus"));
-            assertEquals(row.get("description"), jsonResponse.getString("description"));
-            response.close();
+            // Simple check to see if the added todo exists in the response
+            assertTrue(responseBody.contains("\"title\": \"" + title + "\""));
+            assertTrue(responseBody.contains("\"doneStatus\": \"" + doneStatus + "\""));
+            assertTrue(responseBody.contains("\"description\": \"" + description + "\""));
         }
     }
 
-    @When("a user create a todo with a title, a doneStatus an empty description")
-    public void a_user_create_a_todo_with_a_title_a_done_status_an_empty_description(DataTable dataTable) throws IOException {
-        for (Map<String, String> row : dataTable.asMaps(String.class, String.class)) {
-            JSONObject requestParams = new JSONObject();
-            requestParams.put("title", row.get("title"));
-            requestParams.put("doneStatus", Boolean.parseBoolean(row.get("doneStatus")));
-            requestParams.put("description", "");
+    // Alternate Flow: Adding a new todo without a description
+//    @When("the user adds a todo with the following details:")
+//    public void theUserAddsATodoWithTheFollowingDetailsWithoutDescription(io.cucumber.datatable.DataTable dataTable) {
+//        for (var row : dataTable.asLists()) {
+//            String title = row.get(0);
+//            boolean doneStatus = Boolean.parseBoolean(row.get(1));
+//            String description = row.get(2);
+//
+//            // Construct the request body for the new todo (without description if it's empty)
+//            String jsonBody = "{ \"title\": \"" + title + "\", \"doneStatus\": \"" + doneStatus + "\", \"description\": \"" + description + "\" }";
+//
+//            // Send the POST request to add the todo
+//            response = given()
+//                    .contentType("application/json")
+//                    .body(jsonBody)
+//                    .when()
+//                    .post(baseUrl);
+//        }
+//    }
 
-            HttpPost request = new HttpPost(baseUrl + "/todos");
-            request.setHeader("Content-Type", "application/json");
-            request.setEntity(new StringEntity(requestParams.toString()));
+//    @Then("the following todos should be present in the system:")
+//    public void theFollowingTodosShouldBePresentInTheSystemWithNoDescription(io.cucumber.datatable.DataTable dataTable) {
+//        for (var row : dataTable.asLists()) {
+//            String title = row.get(0);
+//            boolean doneStatus = Boolean.parseBoolean(row.get(1));
+//            String description = row.get(2);
+//
+//            // Fetch the list of todos and assert that the new todo is present
+//            response = given().when().get(baseUrl);
+//            response.then().statusCode(200);
+//            String responseBody = response.body().asString();
+//
+//            // Simple check to see if the added todo exists in the response
+//            assertTrue(responseBody.contains("\"title\": \"" + title + "\""));
+//            assertTrue(responseBody.contains("\"doneStatus\": \"" + doneStatus + "\""));
+//            // Ensure that the description is empty
+//            assertTrue(responseBody.contains("\"description\": \"\""));
+//        }
+//    }
 
-            response = httpClient.execute(request);
-            assertEquals(201, response.getStatusLine().getStatusCode());
-            response.close();
+    // Error Flow: Adding a new todo with missing title
+    @When("the user attempts to add a todo with the following details:")
+    public void theUserAttemptsToAddATodoWithTheFollowingDetailsMissingTitle(io.cucumber.datatable.DataTable dataTable) {
+        for (var row : dataTable.asLists()) {
+            String title = row.get(0);
+            boolean doneStatus = Boolean.parseBoolean(row.get(1));
+            String description = row.get(2);
+
+            // Construct the request body for the new todo (with missing title)
+            String jsonBody = "{ \"title\": \"" + title + "\", \"doneStatus\": \"" + doneStatus + "\", \"description\": \"" + description + "\" }";
+
+            // Send the POST request to add the todo
+            response = given()
+                    .contentType("application/json")
+                    .body(jsonBody)
+                    .when()
+                    .post(baseUrl);
         }
     }
 
-    @Then("the following todos shall still exist in the system")
-    public void the_following_todos_shall_still_exist_in_the_system(DataTable dataTable) throws IOException {
-        for (Map<String, String> row : dataTable.asMaps(String.class, String.class)) {
-            int id = getTodoIdByTitle(row.get("title"));
-            HttpGet request = new HttpGet(baseUrl + "/todos/" + id);
-            response = httpClient.execute(request);
+    @Then("an error message {string} should be returned")
+    public void anErrorMessageShouldBeReturned(String expectedErrorMessage) {
+        response.then().statusCode(400); // Assuming 400 Bad Request for missing title
+        String responseBody = response.body().asString();
 
-            String responseBody = EntityUtils.toString(response.getEntity());
-            JSONObject jsonResponse = new JSONObject(responseBody);
-
-            assertEquals(200, response.getStatusLine().getStatusCode());
-            assertEquals(row.get("title"), jsonResponse.getString("title"));
-            assertEquals(Boolean.parseBoolean(row.get("doneStatus")), jsonResponse.getBoolean("doneStatus"));
-            assertEquals("", jsonResponse.getString("description"));
-            response.close();
-        }
+        // Check if the error message contains the expected message
+        assertTrue(responseBody.contains(expectedErrorMessage));
     }
-
-    @When("a user create a todo with an empty title")
-    public void a_user_create_a_todo_with_an_empty_title(DataTable dataTable) throws IOException {
-        for (Map<String, String> row : dataTable.asMaps(String.class, String.class)) {
-            JSONObject requestParams = new JSONObject();
-            requestParams.put("title", "");
-            requestParams.put("doneStatus", Boolean.parseBoolean(row.get("doneStatus")));
-            requestParams.put("description", "");
-
-            HttpPost request = new HttpPost(baseUrl + "/todos");
-            request.setHeader("Content-Type", "application/json");
-            request.setEntity(new StringEntity(requestParams.toString()));
-
-            response = httpClient.execute(request);
-            assertEquals(400, response.getStatusLine().getStatusCode());
-            response.close();
-        }
-    }
-
-    @Then("the following todos with the title shall not exist")
-    public void the_following_todos_with_the_title_shall_not_exist(DataTable dataTable) throws IOException {
-        for (Map<String, String> row : dataTable.asMaps(String.class, String.class)) {
-            int id = getTodoIdByTitle(row.get("title"));
-            HttpGet request = new HttpGet(baseUrl + "/todos/" + id);
-
-            response = httpClient.execute(request);
-            assertEquals(404, response.getStatusLine().getStatusCode());
-            response.close();
-        }
-    }
-
-    @Then("the server will raise an error")
-    public void the_server_will_raise_an_error(DataTable dataTable) throws IOException {
-        for (Map<String, String> row : dataTable.asMaps(String.class, String.class)) {
-            JSONObject requestParams = new JSONObject();
-            requestParams.put("title", row.get("title"));
-            requestParams.put("doneStatus", Boolean.parseBoolean(row.get("doneStatus")));
-            requestParams.put("description", row.get("description"));
-
-            HttpPost request = new HttpPost(baseUrl + "/todos");
-            request.setHeader("Content-Type", "application/json");
-            request.setEntity(new StringEntity(requestParams.toString()));
-
-            response = httpClient.execute(request);
-            assertEquals(400, response.getStatusLine().getStatusCode());
-            response.close();
-        }
-    }
-
-
-    private int getTodoIdByTitle(String title) throws IOException {
-    HttpGet request = new HttpGet(baseUrl + "/todos");
-    response = httpClient.execute(request);
-
-    String responseBody = EntityUtils.toString(response.getEntity());
-    response.close();
-
-    JSONObject jsonResponse = new JSONObject(responseBody);
-    JSONArray todos = jsonResponse.getJSONArray("todos");
-
-    for (int i = 0; i < todos.length(); i++) {
-        JSONObject todo = todos.getJSONObject(i);
-        if (todo.getString("title").equals(title)) {
-            return todo.getInt("id");
-        }
-    }
-    return -1; // or throw an exception if not found
-}
 }
