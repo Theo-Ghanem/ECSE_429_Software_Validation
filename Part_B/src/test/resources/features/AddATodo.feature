@@ -35,4 +35,4 @@ Feature: Add a new todo
         When the user adds a todo with the following details:
             | title | doneStatus | description           |
             |       | false      | missing title example |
-        Then an error message "Title is required" should be returned
+        Then an error message "Failed Validation: title : can not be empty" should be returned
