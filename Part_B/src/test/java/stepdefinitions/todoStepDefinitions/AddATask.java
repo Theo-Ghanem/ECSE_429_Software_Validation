@@ -5,7 +5,6 @@ import java.util.Map;
 
 import static org.junit.Assert.assertTrue;
 
-import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import static io.restassured.RestAssured.given;
@@ -13,15 +12,15 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import stepdefinitions.BaseStepDefinitions;
 
-public class AddATodo {
+public class AddATask {
 
     private Response response;
     private String baseUrl = "http://localhost:4567/todos";
 
 
-    // Normal Flow: Adding a new todo successfully
-    @When("the user adds the following todos:")
-    public void theUserAddsTheFollowingTodos(io.cucumber.datatable.DataTable dataTable) {
+    // Normal Flow: Creating a task successfully
+    @When("a user adds the following tasks with descriptions:")
+    public void aUserAddsTheFollowingTasksWithDescriptions(io.cucumber.datatable.DataTable dataTable) {
         for (var row : dataTable.asLists()) {
             String title = row.get(0);
             if (title == null) {
@@ -45,8 +44,8 @@ public class AddATodo {
         }
     }
 
-    @Then("the system should contain the following todos:")
-    public void theSystemShouldContainTheFollowingTodos(io.cucumber.datatable.DataTable dataTable) {
+    @Then("the system should contain the following tasks with descriptions:")
+    public void theSystemShouldContainTheFollowingTasksWithDescriptions(io.cucumber.datatable.DataTable dataTable) {
         for (var row : dataTable.asLists()) {
             String title = row.get(0);
             boolean doneStatus = Boolean.parseBoolean(row.get(1));
@@ -74,9 +73,9 @@ public class AddATodo {
         }
     }
 
-    // Alternate Flow: Adding a new todo without a description
-    @When("the user adds the following todos without descriptions:")
-    public void theUserAddsTheFollowingTodosWithoutDescriptions(io.cucumber.datatable.DataTable dataTable) {
+    // Alternate Flow: Creating a task successfully with no description
+    @When("a user adds the following tasks without descriptions:")
+    public void aUserAddsTheFollowingTasksWithoutDescriptions(io.cucumber.datatable.DataTable dataTable) {
         for (var row : dataTable.asLists()) {
             String title = row.get(0);
             if (title == null) {
@@ -100,8 +99,8 @@ public class AddATodo {
         }
     }
 
-    @Then("the system should contain the following todos without descriptions:")
-    public void theSystemShouldContainTheFollowingTodosWithoutDescriptions(io.cucumber.datatable.DataTable dataTable) {
+    @Then("the system should contain the following tasks without descriptions:")
+    public void theSystemShouldContainTheFollowingTasksWithoutDescriptions(io.cucumber.datatable.DataTable dataTable) {
         for (var row : dataTable.asLists()) {
             String title = row.get(0);
             boolean doneStatus = Boolean.parseBoolean(row.get(1));
@@ -129,9 +128,9 @@ public class AddATodo {
         }
     }
 
-    // Error Flow: Adding a new todo with missing title
-    @When("the user attempts to add the following todos with missing titles:")
-    public void theUserAttemptsToAddTheFollowingTodosWithMissingTitles(io.cucumber.datatable.DataTable dataTable) {
+    // Error Flow: Failing to create a task with an empty title
+    @When("a user attempts to add the following tasks with empty titles:")
+    public void aUserAttemptsToAddTheFollowingTasksWithEmptyTitles(io.cucumber.datatable.DataTable dataTable) {
         for (var row : dataTable.asLists()) {
             String title = row.get(0);
             if (title == null) {
@@ -155,11 +154,12 @@ public class AddATodo {
         }
     }
 
-    @Then("a todo error message {string} should be returned")
-    public void aTodoErrorMessageShouldBeReturned(String expectedErrorMessage) {
-        response.then().statusCode(400);
-        String responseBody = response.body().asString();
-        assertTrue(responseBody.contains(expectedErrorMessage));
-    }
+@Then("a task error message {string} should be returned")
+public void aTaskErrorMessageShouldBeReturned(String expectedErrorMessage) {
+    response.then().statusCode(400);
+    String responseBody = response.body().asString();
+    System.out.println("Response Body: " + responseBody); // Add this line to print the response body
+    assertTrue(responseBody.contains(expectedErrorMessage));
+}
 
 }

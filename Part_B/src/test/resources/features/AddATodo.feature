@@ -34,4 +34,4 @@ Feature: Add a new todo
         When the user attempts to add the following todos with missing titles:
             | title | doneStatus | description           |
             |       | false      | missing title example |
-        Then an error message "Failed Validation: title : can not be empty" should be returned
+        Then a todo error message "Failed Validation: title : can not be empty" should be returned
