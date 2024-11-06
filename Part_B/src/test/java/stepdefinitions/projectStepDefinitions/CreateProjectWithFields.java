@@ -6,6 +6,7 @@ import java.util.Map;
 import org.json.JSONObject;
 import static org.junit.Assert.assertTrue;
 
+import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import static io.restassured.RestAssured.given;
@@ -195,4 +196,56 @@ public class CreateProjectWithFields extends HelperStepDefinition {
                 .when()
                 .post(tasksOfUrl + todoID + "/tasksof");
     }
+
+    @Given("that no todo with id 3 exists")
+    public void noTodoWithID3Exists() {
+        response = given().when().get("http://localhost:4567/todos/3");
+        if (response.getStatusCode() != 404) {
+            given().when().delete("http://localhost:4567/todos/3").then().statusCode(200);
+        } else {
+            response.then().statusCode(404);
+        }
+    }
+
+    @When("the user attempts to create a project with a non-existing task")
+    public void createAProjectWithNonExistingTask(io.cucumber.datatable.DataTable dataTable) {
+        for (var row : dataTable.asLists()) {
+            int header = 0;
+            int id = -1;
+            String title = row.get(0);
+            if (title == null) {
+                title = "";
+            }
+            boolean completed = Boolean.parseBoolean(row.get(1));
+            boolean active = Boolean.parseBoolean(row.get(2));
+            String description = row.get(3);
+            if (description == null) {
+                description = "";
+            }
+            if (row.get(4).contains("task ID")) {
+                header = 1;
+            } else {
+                id = Integer.parseInt(row.get(4));
+                header = 0;
+            }
+
+            String jsonBody = String.format(
+                    "{ \"title\": \"%s\", \"completed\": %b, \"active\": %b, \"description\": \"%s\", \"tasks\": [{\"id\": \"%d\"}] }",
+                    title, completed, active, description, id);
+
+            response = given()
+                    .contentType("application/json")
+                    .body(jsonBody)
+                    .when()
+                    .post(baseUrl);
+        }
+    }
+
+    @Then("a project error message {string} should be returned")
+    public void aTodoErrorMessageShouldBeReturned(String expectedErrorMessage) {
+        response.then().statusCode(400);
+        String responseBody = response.body().asString();
+        assertTrue(responseBody.contains(expectedErrorMessage));
+    }
+
 }
