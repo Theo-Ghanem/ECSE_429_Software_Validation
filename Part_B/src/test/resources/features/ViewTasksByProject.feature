@@ -5,7 +5,7 @@ Feature:
     As a user, I want to be able to query tasks related to a specific project, so I can manage my time and effort when I start to work on a project.
 
   Background:
-    Given the API server is operational 
+    Given the API server is operational
       And the following projects are recorded in the system
       | title                   | completed | active | description                  |
       | Kitchen Remodel         | false     | true   | Updating kitchen appliances    |
@@ -14,13 +14,10 @@ Feature:
       | title                           | doneStatus | description                |
       | Install New Cabinets            | false      | Installing cabinets         |
       | Purchase Countertop             | true       | Selecting countertop styles |
-      And no todos are associated with 'Garden Landscaping'
 
   # Normal Flow
   Scenario Outline: Request tasks for a project
-    Given <projectTitle> is the title of a project in the system
-      And the project with title <projectTitle> has outstanding tasks
-      When the user retrieves the tasks for the project titled <projectTitle>
+      When the user retrieves the tasks for a project
       Then <n> todos will be returned
       And each todo returned will correspond to a task of the project titled <projectTitle>
     Examples:

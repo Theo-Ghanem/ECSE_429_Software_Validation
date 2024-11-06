@@ -209,6 +209,8 @@ public class CreateProjectWithFields {
     @When("the user attempts to create a project with a non-existing task")
     public void createAProjectWithNonExistingTask(io.cucumber.datatable.DataTable dataTable) {
         for (var row : dataTable.asLists()) {
+            int header = 0;
+            int id = -1;
             String title = row.get(0);
             if (title == null) {
                 title = "";
@@ -219,7 +221,12 @@ public class CreateProjectWithFields {
             if (description == null) {
                 description = "";
             }
-            int id = Integer.parseInt(row.get(4));
+            if (row.get(4).contains("task ID")) {
+                header = 1;
+            } else {
+                id = Integer.parseInt(row.get(4));
+                header = 0;
+            }
 
             String jsonBody = String.format(
                     "{ \"title\": \"%s\", \"completed\": %b, \"active\": %b, \"description\": \"%s\", \"tasks\": [{\"id\": \"%d\"}] }",
@@ -232,4 +239,12 @@ public class CreateProjectWithFields {
                     .post(baseUrl);
         }
     }
+
+    @Then("a project error message {string} should be returned")
+    public void aTodoErrorMessageShouldBeReturned(String expectedErrorMessage) {
+        response.then().statusCode(400);
+        String responseBody = response.body().asString();
+        assertTrue(responseBody.contains(expectedErrorMessage));
+    }
+
 }

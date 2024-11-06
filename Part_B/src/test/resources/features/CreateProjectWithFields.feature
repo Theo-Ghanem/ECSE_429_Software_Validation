@@ -33,4 +33,4 @@ Feature: Creating Project with specific fields
         When the user attempts to create a project with a non-existing task
         | title               | completed    | active    | description | task ID    |
         | leave the office    | false        | false     | empty       | 3          |
-        Then the project should not appear under Projects, and an error message should be displayed
+        Then a project error message "Invalid relationships: Failed Validation: cannot find tasks to relate to with id 3" should be returned
