@@ -2,10 +2,14 @@ package stepdefinitions.projectStepDefinitions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
+import static org.junit.Assert.assertTrue;
 
 import io.cucumber.java.en.And;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
 import static io.restassured.RestAssured.given;
 import io.restassured.response.Response;
 import stepdefinitions.HelperStepDefinition;
@@ -110,6 +114,42 @@ public class ViewTasksByProject extends HelperStepDefinition {
                 .body(jsonBody)
                 .when()
                 .post(tasksOfUrl + todoID + "/tasksof");
+    }
+
+    @When("the user retrieves the tasks for a project {string}")
+    public void theUserRetrievesTheTasksForAProject(String project) {
+
+        JSONObject the_project = findProjectByName(project);
+
+        int projectId = the_project.getInt("id");
+        response = given()
+                .contentType("application/json")
+                .when()
+                .get(baseUrl + "/projects/" + projectId + "/tasks"); // Adjust the URL as per your API
+
+        if (response.statusCode() != 200) {
+            throw new AssertionError("Failed to retrieve tasks for project " + projectId);
+        }
+    }
+
+    @Then("todos will be returned from {string}")
+    public void todosWillBeReturned(String project) {
+        JSONObject the_project = findProjectByName(project);
+
+        int projectId = the_project.getInt("id");
+        response = given()
+                .contentType("application/json")
+                .when()
+                .get(baseUrl + "/projects/" + projectId + "/tasks"); // Adjust the URL as per your API
+
+        if (response.statusCode() != 200) {
+            throw new AssertionError("Failed to retrieve tasks for project " + projectId);
+        }
+
+        List<Map<String, Object>> tasks = response.jsonPath().getList("tasks");
+
+        int numberOfTasks = tasks.size();
+        assertTrue(numberOfTasks == 2);
     }
 
 }

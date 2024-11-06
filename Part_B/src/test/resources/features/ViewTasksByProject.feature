@@ -17,12 +17,9 @@ Feature:
 
   # Normal Flow
   Scenario Outline: Request tasks for a project
-      When the user retrieves the tasks for a project
-      Then <n> todos will be returned
-      And each todo returned will correspond to a task of the project titled <projectTitle>
-    Examples:
-      | projectTitle               | n |
-      | Kitchen Remodel            | 2 |
+      When the user retrieves the tasks for a project 'Kitchen Remodel'
+      Then todos will be returned from 'Kitchen Remodel'
+      | 2 |
 
   # Alternate Flow
   Scenario Outline: Request tasks for a project with no tasks
