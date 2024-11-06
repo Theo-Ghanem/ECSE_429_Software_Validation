@@ -103,6 +103,12 @@ public class ServerSetup {
     }
 
     public static void stopServer() {
+    try {
+        RestAssured.post(BASE_URL + "/shutdown");
+    } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
         destroyProcess();
     }
+}
 }

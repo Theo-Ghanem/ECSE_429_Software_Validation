@@ -1,45 +1,48 @@
 @MarkTodoAsDone
-Feature: Mark Todo As Done
-    As a user, I want to be able to mark a task as complete, to record my progress
+Feature: Mark a todo as done
+    As a user, I want to be able to mark a todo as done so that I can track my completed tasks.
 
-Background:
-    Given the API server is running
-    And the following todos are registered in the system:
-        | title    | doneStatus | description |
-        | example1 | false      | test        |
-        | example2 | true       | test        |
-        | x        | true       | test        |
+    Background:
+        Given the API server is running
+        And the following todo instances are present in the system:
+            | id | title           | doneStatus | description           |
+            | 1  | write report    | false      | quarterly summary     |
+            | 2  | review code     | false      | bug fixes            |
+            | 3  | clean desk      | false      | organize workspace    |
 
-# Normal Flow
-Scenario Outline: Mark an incomplete task as completed
-    Given a todo with the title <selectedTitle> exists in the system
-    And the todo titled <selectedTitle> is currently marked as not done
-    When the user marks the task titled <selectedTitle> as done
-    Then the todo titled <selectedTitle> should be updated to done status in the system
-    And the updated todo, marked as done, will be returned to the user
-    Examples:
-        | selectedTitle |
-        | example1      |
+# Normal flow
+    Scenario: Successfully marking a todo as done
+        When a user marks the following todos as done:
+            | id | title           | description           |
+            | 1  | write report    | quarterly summary     |
+            | 2  | review code     | bug fixes            |
+        Then the following todos should be marked as done:
+            | id | title           | description           |
+            | 1  | write report    | quarterly summary     |
+            | 2  | review code     | bug fixes            |
 
-# Alternate Flow
-Scenario Outline: Attempting to mark an already completed task as done
-    Given a todo with the title <selectedTitle> exists in the system
-    And the todo titled <selectedTitle> is already marked as done
-    When the user attempts to mark the task titled <selectedTitle> as done again
-    Then no changes will be made to the todo in the system
-    And the todo will be returned to the user unchanged
-    Examples:
-        | selectedTitle |
-        | example2      |
-        | x             |
+# Alternate flow
+    Scenario: Successfully marking an already completed todo as done
+        When a user marks the following todo as done:
+            | id | title           | description           |
+            | 3  | clean desk      | organize workspace    |
+        And the user marks the same todo as done again:
+            | id | title           | description           |
+            | 3  | clean desk      | organize workspace    |
+        Then the todo should remain marked as done:
+            | id | title           | description           |
+            | 3  | clean desk      | organize workspace    |
 
-# Error Flow
-Scenario Outline: Attempting to mark a non-existent task as completed
-    Given no todo with the title <selectedTitle> exists in the system
-    When the user tries to mark the non-existent task titled <selectedTitle> as done
-    Then no todos in the system will be modified
-    And the user will receive an error message indicating that the specified todo does not exist
-    Examples:
-        | selectedTitle |
-        | fake title    |
-        | null          |
+# Error flow
+    Scenario Outline: Attempting to mark a non-existing todo as done
+        When a user tries to mark a non-existing todo as done:
+            | id | error                                        |
+            | <id> | Could not find an instance with todos/<id> |
+        Then the server should return a not found error:
+            | id | error                                        |
+            | <id> | Could not find an instance with todos/<id> |
+
+        Examples:
+            | id  |
+            | 999 |
+            | 888 |

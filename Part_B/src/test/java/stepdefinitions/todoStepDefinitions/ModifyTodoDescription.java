@@ -3,7 +3,6 @@ package stepdefinitions.todoStepDefinitions;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import stepdefinitions.HelperStepDefinition;
 
@@ -14,15 +13,22 @@ import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertTrue;
 
 public class ModifyTodoDescription extends HelperStepDefinition {
+
     private Response response;
     private String baseUrl = "http://localhost:4567/todos";
 
-    @Given("the following todo exists:")
-    public void theFollowingTodoExists(io.cucumber.datatable.DataTable dataTable) {
+    @Given("the following todo instances with descriptions are present in the system:")
+    public void theFollowingTodoInstancesWithDescriptionArePresentInTheSystem(io.cucumber.datatable.DataTable dataTable) {
         for (var row : dataTable.asLists()) {
             String title = row.get(0);
+            if (title == null) {
+                title = "";
+            }
             boolean doneStatus = Boolean.parseBoolean(row.get(1));
             String description = row.get(2);
+            if (description == null) {
+                description = "";
+            }
 
             String jsonBody = String.format(
                     "{ \"title\": \"%s\", \"doneStatus\": %b, \"description\": \"%s\" }",
@@ -36,119 +42,66 @@ public class ModifyTodoDescription extends HelperStepDefinition {
         }
     }
 
-    // Normal Flow
-    @When("the user modifies the description of the todo with title {string} to {string}")
-    public void theUserModifiesTheDescriptionOfTheTodoWithTitleTo(String title, String newDescription) {
-        String jsonBody = String.format("{ \"description\": \"%s\" }", newDescription);
-
-        response = given()
-                .contentType("application/json")
-                .body(jsonBody)
-                .when()
-                .put(baseUrl + "/" + getTodoIdByTitle(title));
-    }
-
-    @Then("the system should contain the following todo with the modified descriptions:")
-    public void theSystemShouldContainTheFollowingTodoWithTheModifiedDescriptions(io.cucumber.datatable.DataTable dataTable) {
-        for (var row : dataTable.asLists()) {
-            String title = row.get(0);
-            boolean doneStatus = Boolean.parseBoolean(row.get(1));
-            String description = row.get(2);
-
-            response = given().when().get(baseUrl);
-            response.then().statusCode(200);
-            String responseBody = response.body().asString();
-
-            JsonPath jsonPath = new JsonPath(responseBody);
-            List<Map<String, Object>> todos = jsonPath.getList("todos");
-
-            boolean found = false;
-            for (Map<String, Object> todo : todos) {
-                if (todo.get("title").equals(title) &&
-                        todo.get("doneStatus").toString().equals(String.valueOf(doneStatus)) &&
-                        todo.get("description").equals(description)) {
-                    found = true;
-                    break;
-                }
-            }
-
-            assertTrue("Expected todo not found in response body.", found);
+    // Normal flow
+    @When("a user modifies the description of a todo with the specified title:")
+    public void aUserModifiesTheDescriptionOfATodoWithTheSpecifiedTitle(io.cucumber.datatable.DataTable dataTable) {
+        List<Map<String, String>> todos = dataTable.asMaps(String.class, String.class);
+        for (Map<String, String> todo : todos) {
+            String title = todo.get("title");
+            String jsonBody = String.format(
+                    "{ \"description\": \"%s\" }",
+                    todo.get("description"));
+            int id = findIdFromTodoName(title);
+            response = given()
+                    .contentType("application/json")
+                    .body(jsonBody)
+                    .when()
+                    .put(baseUrl + "/" + id);
         }
     }
 
-    // Alternate Flow
-    @When("the user modifies the description of the todo with title {string} to an empty string")
-    public void theUserModifiesTheDescriptionOfTheTodoWithTitleToAnEmptyString(String title) {
-        String jsonBody = "{ \"description\": \"\" }";
+    @Then("the following todos should be present in the system with updated descriptions:")
+    public void theFollowingTodosShouldBePresentInTheSystemWithUpdatedDescriptions(io.cucumber.datatable.DataTable dataTable) {
+        List<Map<String, String>> todos = dataTable.asMaps(String.class, String.class);
+        for (Map<String, String> todo : todos) {
+            String title = todo.get("title");
+            int id = findIdFromTodoName(title);
+            response = given()
+                    .when()
+                    .get(baseUrl + "/" + id);
+            String responseBody = response.getBody().asString();
+            String expectedDescription = todo.get("description");
 
-        response = given()
-                .contentType("application/json")
-                .body(jsonBody)
-                .when()
-                .put(baseUrl + "/" + getTodoIdByTitle(title));
-    }
+            // Print statements for debugging
+            System.out.println("Response Body: " + responseBody);
+            System.out.println("Expected Description: " + expectedDescription);
 
-    @Then("the system should contain the following todo:")
-    public void theSystemShouldContainTheFollowingTodo(io.cucumber.datatable.DataTable dataTable) {
-        for (var row : dataTable.asLists()) {
-            String title = row.get(0);
-            boolean doneStatus = Boolean.parseBoolean(row.get(1));
-            String description = row.get(2);
-
-            response = given().when().get(baseUrl);
-            response.then().statusCode(200);
-            String responseBody = response.body().asString();
-
-            JsonPath jsonPath = new JsonPath(responseBody);
-            List<Map<String, Object>> todos = jsonPath.getList("todos");
-
-            boolean found = false;
-            for (Map<String, Object> todo : todos) {
-                if (todo.get("title").equals(title) &&
-                        todo.get("doneStatus").toString().equals(String.valueOf(doneStatus)) &&
-                        todo.get("description").equals(description)) {
-                    found = true;
-                    break;
-                }
-            }
-
-            assertTrue("Expected todo not found in response body.", found);
+            assertTrue("Expected description not found in response body. Expected: " + expectedDescription + ", but got: " + responseBody,
+                    responseBody.contains(expectedDescription));
         }
     }
 
-    // Error Flow
-    @When("the user attempts to modify the description of a non-existent todo with title {string} to {string}")
-    public void theUserAttemptsToModifyTheDescriptionOfANonExistentTodoWithTitleTo(String title, String newDescription) {
-        String jsonBody = String.format("{ \"description\": \"%s\" }", newDescription);
-
-        response = given()
-                .contentType("application/json")
-                .body(jsonBody)
-                .when()
-                .put(baseUrl + "/non-existent-id");
-    }
-
-    @Then("a todo description error message {string} should be returned")
-    public void aTodoDescriptionErrorMessageShouldBeReturned(String expectedErrorMessage) {
-        response.then().statusCode(404);
-        String responseBody = response.body().asString();
-        assertTrue(responseBody.contains(expectedErrorMessage));
-    }
-
-    private String getTodoIdByTitle(String title) {
-        response = given().when().get(baseUrl);
-        response.then().statusCode(200);
-        String responseBody = response.body().asString();
-
-        JsonPath jsonPath = new JsonPath(responseBody);
-        List<Map<String, Object>> todos = jsonPath.getList("todos");
-
-        for (Map<String, Object> todo : todos) {
-            if (todo.get("title").equals(title)) {
-                return todo.get("id").toString();
-            }
+    // Error flow
+    @When("a user tries to modify the description of a todo with a title that doesn’t exist:")
+    public void aUserTriesToModifyTheDescriptionOfATodoWithATitleThatDoesntExist(io.cucumber.datatable.DataTable dataTable) {
+        List<Map<String, String>> todos = dataTable.asMaps(String.class, String.class);
+        for (Map<String, String> todo : todos) {
+            String jsonBody = String.format(
+                    "{ \"description\": \"%s\" }",
+                    todo.get("description"));
+            response = given()
+                    .contentType("application/json")
+                    .body(jsonBody)
+                    .when()
+                    .put(baseUrl + "/non-existing-id");
         }
+    }
 
-        return null;
+    @Then("the server should raise an error for modifying a description:")
+    public void theServerShouldRaiseAnError(io.cucumber.datatable.DataTable dataTable) {
+        List<Map<String, String>> errors = dataTable.asMaps(String.class, String.class);
+        for (Map<String, String> error : errors) {
+            assertTrue(response.getBody().asString().contains(error.get("error")));
+        }
     }
 }

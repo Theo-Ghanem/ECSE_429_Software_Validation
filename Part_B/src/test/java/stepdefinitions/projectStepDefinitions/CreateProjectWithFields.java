@@ -11,8 +11,9 @@ import io.cucumber.java.en.When;
 import static io.restassured.RestAssured.given;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
+import stepdefinitions.HelperStepDefinition;
 
-public class CreateProjectWithFields {
+public class CreateProjectWithFields extends HelperStepDefinition {
 
     private Response response;
     private String baseUrl = "http://localhost:4567/projects";
