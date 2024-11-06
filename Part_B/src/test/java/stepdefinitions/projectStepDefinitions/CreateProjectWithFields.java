@@ -6,6 +6,7 @@ import java.util.Map;
 import org.json.JSONObject;
 import static org.junit.Assert.assertTrue;
 
+import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import static io.restassured.RestAssured.given;
@@ -193,5 +194,42 @@ public class CreateProjectWithFields {
                 .body(jsonBody)
                 .when()
                 .post(tasksOfUrl + todoID + "/tasksof");
+    }
+
+    @Given("that no todo with id 3 exists")
+    public void noTodoWithID3Exists() {
+        response = given().when().get("http://localhost:4567/todos/3");
+        if (response.getStatusCode() != 404) {
+            given().when().delete("http://localhost:4567/todos/3").then().statusCode(200);
+        } else {
+            response.then().statusCode(404);
+        }
+    }
+
+    @When("the user attempts to create a project with a non-existing task")
+    public void createAProjectWithNonExistingTask(io.cucumber.datatable.DataTable dataTable) {
+        for (var row : dataTable.asLists()) {
+            String title = row.get(0);
+            if (title == null) {
+                title = "";
+            }
+            boolean completed = Boolean.parseBoolean(row.get(1));
+            boolean active = Boolean.parseBoolean(row.get(2));
+            String description = row.get(3);
+            if (description == null) {
+                description = "";
+            }
+            int id = Integer.parseInt(row.get(4));
+
+            String jsonBody = String.format(
+                    "{ \"title\": \"%s\", \"completed\": %b, \"active\": %b, \"description\": \"%s\", \"tasks\": [{\"id\": \"%d\"}] }",
+                    title, completed, active, description, id);
+
+            response = given()
+                    .contentType("application/json")
+                    .body(jsonBody)
+                    .when()
+                    .post(baseUrl);
+        }
     }
 }
