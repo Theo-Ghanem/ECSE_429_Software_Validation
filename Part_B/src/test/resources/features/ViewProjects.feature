@@ -3,8 +3,8 @@ Feature: View projects
 
   As a user, I want to query all available projects so that I can monitor the projects I currently have underway.
 
-Background: 
-    Given the API server is operational
+Background:
+  Given the API server is running
 
 # Normal flow
 Scenario: Retrieving all projects
@@ -30,7 +30,7 @@ Scenario: Retrieving projects when none are registered
 # Error flow
 Scenario: Attempting to query projects using an invalid endpoint
     Given the API server is running
-    When a GET request is made to /projectz
-    Then the request to the endpoint /projectz should return a 404 Not Found status code
+    When a GET request is made to /projects
+    Then the request to the endpoint /projects should return a 404 Not Found status code
 
 

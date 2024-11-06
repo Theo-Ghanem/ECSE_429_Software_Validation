@@ -158,7 +158,6 @@ public class AddATask extends HelperStepDefinition {
 public void aTaskErrorMessageShouldBeReturned(String expectedErrorMessage) {
     response.then().statusCode(400);
     String responseBody = response.body().asString();
-    System.out.println("Response Body: " + responseBody); // Add this line to print the response body
     assertTrue(responseBody.contains(expectedErrorMessage));
 }
 

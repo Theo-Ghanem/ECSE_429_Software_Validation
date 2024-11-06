@@ -1,5 +1,5 @@
-@ChangingProjectFields
-Feature: Changing the non-task fields of a specific project
+@UpdatingProjectFields
+Feature: Updating the non-task fields of a specific project
 
     As a user, I want to be able to modify the fields of a project, so I can update the relevant information of the project
 

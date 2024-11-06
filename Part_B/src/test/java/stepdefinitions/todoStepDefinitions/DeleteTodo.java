@@ -95,12 +95,10 @@ public class DeleteTodo extends HelperStepDefinition {
         for (Map<String, String> todo : todos) {
             String id = todo.get("id");
             String expectedError = todo.get("error");
-            System.out.println("Checking if todo with id " + id + " is not found in the system.");
             response = given()
                     .when()
                     .get("/todos/" + id);
             String responseBody = response.getBody().asString();
-            System.out.println("Response body: " + responseBody);
             JSONObject jsonResponse = new JSONObject(responseBody);
             JSONArray errorMessages = jsonResponse.getJSONArray("errorMessages");
             boolean errorFound = false;

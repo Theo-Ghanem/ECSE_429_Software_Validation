@@ -19,7 +19,6 @@ public class RunFeaturesRandomly {
             Collections.shuffle(featureFiles);
 
             for (Path file : featureFiles) {
-                System.out.println("Running feature file: " + file.getFileName());
                 runFeatureFile(file);
             }
         } catch (IOException | InterruptedException e) {

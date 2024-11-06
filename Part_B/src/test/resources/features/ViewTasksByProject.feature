@@ -5,8 +5,9 @@ Feature:
     As a user, I want to be able to query tasks related to a specific project, so I can manage my time and effort when I start to work on a project.
 
   Background:
-    Given the API server is operational
-      And the following projects are recorded in the system
+    Given the API server is running
+
+    And the following projects are recorded in the system
       | title                   | completed | active | description                  |
       | Kitchen Remodel         | false     | true   | Updating kitchen appliances    |
       | Garden Landscaping      | false     | true   | Designing a new garden layout  |

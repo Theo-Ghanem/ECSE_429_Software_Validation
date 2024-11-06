@@ -46,7 +46,6 @@ public class ServerSetup {
     public static void startServerUntimed() {
         String jarPath = "../Application_Being_Tested/runTodoManagerRestAPI-1.5.5.jar";
         if (!Files.exists(Paths.get(jarPath))) {
-            System.out.println("JAR file not found at " + jarPath);
             System.exit(-1);
         }
 
