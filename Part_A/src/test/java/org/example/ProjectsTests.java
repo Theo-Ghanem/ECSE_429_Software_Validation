@@ -1,7 +1,7 @@
 package org.example;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import io.restassured.RestAssured;
+import org.junit.jupiter.api.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,9 +10,11 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static org.example.ServerSetup.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
+@TestMethodOrder(MethodOrderer.Random.class)
 class ProjectsTests {
 
     private static final String PROJECTS_URL = "http://localhost:4567/projects";
@@ -21,6 +23,9 @@ class ProjectsTests {
 
     @BeforeAll
     static void setUp() {
+        RestAssured.baseURI = BASE_URL;
+//        startServer();
+        System.out.println("Server started");
         for (int i = 1; i <= 5; i++) {
             String jsonInputString = String.format("""
                     {
@@ -31,6 +36,12 @@ class ProjectsTests {
                     }""", i, i);
             executeRequest(PROJECTS_URL, "POST", jsonInputString, 201);
         }
+    }
+
+    @AfterAll
+    public static void after() {
+        stopServer();
+        System.out.println("Server stopped");
     }
 
     @Test

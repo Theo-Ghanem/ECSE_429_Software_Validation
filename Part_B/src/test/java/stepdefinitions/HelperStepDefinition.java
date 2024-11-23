@@ -5,8 +5,6 @@ import io.restassured.response.Response;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.List;
-
 public class HelperStepDefinition extends ServerSetup {
     public static String errorMessage;
     public static int statusCode;
@@ -47,30 +45,11 @@ public class HelperStepDefinition extends ServerSetup {
         return new JSONArray(response.getBody().asString());
     }
 
-    public static int findIdFromTodoName(String todoName) {
-        JSONObject todo = findTodoByName(todoName);
+    public static int findIdFromProjectName(String todoName) {
+        JSONObject todo = findProjectByName(todoName);
         return todo != null ? todo.getInt("id") : -1;
     }
 
 
-    public JSONObject addTodoByRow(List<String> columns) {
-        String body = String.format("{\"title\":\"%s\",\"doneStatus\":%s,\"description\":\"%s\"}",
-                columns.get(0), columns.get(1), columns.get(2));
-        Response response = RestAssured.given().body(body).post(TODOS_ENDPOINT);
-        JSONObject todoObj = new JSONObject(response.getBody().asString());
-        if (columns.size() == 4) {
-            requestPriorityForTodo(columns.get(0), columns.get(3));
-        }
-        return todoObj;
-    }
 
-    public void requestPriorityForTodo(String todoTitle, String priorityToAssign) {
-        int id = findIdFromTodoName(todoTitle.replace("\"", ""));
-        String body = String.format("{\"title\":\"%s\"}", priorityToAssign.replace("\"", ""));
-        Response response = RestAssured.given().body(body).post(TODOS_ENDPOINT + "/" + id + "/categories");
-        statusCode = response.getStatusCode();
-        if (statusCode != 200 && statusCode != 201) {
-            errorMessage = new JSONObject(response.getBody().asString()).getJSONArray("errorMessages").getString(0);
-        }
-    }
 }

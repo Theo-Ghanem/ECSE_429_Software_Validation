@@ -1,6 +1,7 @@
 package org.example;
 
-import org.junit.jupiter.api.Test;
+import io.restassured.RestAssured;
+import org.junit.jupiter.api.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,18 +10,34 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static org.example.ServerSetup.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
+@TestMethodOrder(MethodOrderer.Random.class)
 class TodoTests {
 
     private static final String TODO_URL = "http://localhost:4567/todos";
     private static final String CONTENT_TYPE_JSON = "application/json; utf-8";
     private static final String ACCEPT_JSON = "application/json";
 
+    @BeforeAll
+    public static void initialize() {
+        RestAssured.baseURI = BASE_URL;
+//        startServer();
+        System.out.println("Server started");
+    }
+
+    @AfterAll
+    public static void after() {
+        stopServer();
+        System.out.println("Server stopped");
+    }
+
     @Test
     void testGETTodo() {
         executeRequest(TODO_URL, "GET", null, 200);
+        System.out.println("GET Todo test passed");
     }
 
     @Test
@@ -130,7 +147,7 @@ class TodoTests {
                   <title>Malformed XML Todo</title>
                   <doneStatus>false</doneStatus>
                   <description>Description of the new todo</description
-                </todo>"""; // Missing closing tag
+                </todo>""";
         executeRequestWithXML(TODO_URL, "POST", malformedXmlInputString, 400);
     }
 

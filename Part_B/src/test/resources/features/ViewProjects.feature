@@ -20,7 +20,6 @@ Scenario: Retrieving all projects
 
 # Alternate flow
 Scenario: Retrieving projects when none are registered
-    Given the API server is running
     When a GET request is made to /projects
     Then the response body should display only the default project:
       | title         | id   | 
@@ -29,7 +28,6 @@ Scenario: Retrieving projects when none are registered
 
 # Error flow
 Scenario: Attempting to query projects using an invalid endpoint
-    Given the API server is running
     When a GET request is made to /projects
     Then the request to the endpoint /projects should return a 404 Not Found status code
 

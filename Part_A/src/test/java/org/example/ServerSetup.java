@@ -1,4 +1,4 @@
-package stepdefinitions;
+package org.example;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
@@ -90,12 +90,14 @@ public class ServerSetup {
     }
 
     public static void stopServer() {
-    try {
-        RestAssured.post(BASE_URL + "/shutdown");
-    } catch (Exception e) {
-        e.printStackTrace();
-    } finally {
-        destroyProcess();
+        try {
+            RestAssured.post(BASE_URL + "/shutdown");
+            System.out.println("Shuting down server");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            destroyProcess();
+        }
     }
-}
+
 }

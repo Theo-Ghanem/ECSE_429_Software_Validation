@@ -7,7 +7,9 @@ import static org.junit.Assert.assertTrue;
 
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+
 import static io.restassured.RestAssured.given;
+
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import stepdefinitions.HelperStepDefinition;
@@ -154,11 +156,11 @@ public class AddATask extends HelperStepDefinition {
         }
     }
 
-@Then("a task error message {string} should be returned")
-public void aTaskErrorMessageShouldBeReturned(String expectedErrorMessage) {
-    response.then().statusCode(400);
-    String responseBody = response.body().asString();
-    assertTrue(responseBody.contains(expectedErrorMessage));
-}
+    @Then("a task error message {string} should be returned")
+    public void aTaskErrorMessageShouldBeReturned(String expectedErrorMessage) {
+        response.then().statusCode(400);
+        String responseBody = response.body().asString();
+        assertTrue(responseBody.contains(expectedErrorMessage));
+    }
 
 }
