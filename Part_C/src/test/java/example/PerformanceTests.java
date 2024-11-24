@@ -32,13 +32,13 @@ public class PerformanceTests {
 
     @AfterAll
     public static void after() {
-//        stopServer();
+        stopServer();
         System.out.println("Server stopped");
     }
 
     @Test
     public void performanceTest() {
-        int[] objectCounts = {10, 50, 100, 200};
+        int[] objectCounts = {10, 50, 100, 200, 500, 1000, 5000};
         for (int count : objectCounts) {
             measurePerformanceForTodos(count);
             measurePerformanceForProjects(count);
@@ -47,16 +47,17 @@ public class PerformanceTests {
     }
 
     private void measurePerformanceForTodos(int count) {
-        System.out.println("Measuring performance for TODOs with count: " + count);
+        System.out.println("Measuring performance for TODOs with " + count + " objects:");
         try {
             // Populate objects
-            for (int i = 0; i < count; i++) {
-                createTodo();
+            int i;
+            for ( i = 0; i < count; i++) {
+                createTodo(i);
             }
 
             // Measure time for create operation
             long startTime = System.nanoTime();
-            createTodo();
+            createTodo(i);
             long endTime = System.nanoTime();
             System.out.println("Time to create TODO: " + (endTime - startTime)/ 1_000_000  + " ms");
 
@@ -81,7 +82,7 @@ public class PerformanceTests {
     }
 
     private void measurePerformanceForProjects(int count) {
-        System.out.println("Measuring performance for Projects with count: " + count);
+        System.out.println("Measuring performance for Projects with " + count + " objects:");
         try {
             // Populate objects
             for (int i = 0; i < count; i++) {
@@ -114,13 +115,13 @@ public class PerformanceTests {
         }
     }
 
-    private void createTodo() throws Exception {
+    private void createTodo(int count) throws Exception {
         String jsonInputString = """
                 {
-                  "title": "Performance Test Todo",
+                  "title": "Performance Test Todo %d",
                   "doneStatus": false,
                   "description": "This is a performance test todo"
-                }""";
+                }""".formatted(count);
         executeRequest(TODO_URL, "POST", jsonInputString, 201);
     }
 
